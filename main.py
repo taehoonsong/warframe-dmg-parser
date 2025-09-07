@@ -1,5 +1,6 @@
 import os
 import platform
+import sys
 from pathlib import Path
 
 from gui import App, path_not_found, unsupported
@@ -12,17 +13,17 @@ def main() -> None:
         app_data = os.getenv("LOCALAPPDATA")
         if app_data is None:
             path_not_found()
-            exit(1)
+            sys.exit(1)
     elif p == "Linux":
         app_data = Path(
             "~/.local/share/Steam/steamapps/compatdata/230410/pfx/drive_c/users/steamuser/AppData/Local"
         ).expanduser()
         if not app_data.exists():
             path_not_found()
-            exit(1)
+            sys.exit(1)
     else:
         unsupported()
-        exit(1)
+        sys.exit(1)
 
     log_path = Path(app_data, "Warframe", "EE.log")
     parser = LogParser(log_path)
