@@ -6,7 +6,7 @@ from tkinter.messagebox import showerror
 from tkinter.scrolledtext import ScrolledText
 from typing import NamedTuple, Protocol
 
-from exceptions import NoNewLogs
+from exceptions import NoNewLogsError
 from structs import ParsedDmgLog
 
 
@@ -60,23 +60,27 @@ class App(tk.Frame):
         self.log.configure(state="disabled")  # disable user input
 
     @staticmethod
-    def rgb_to_hex(rgb: RGB):
+    def rgb_to_hex(rgb: RGB) -> str:
         r, g, b = rgb
         return f"#{r:02x}{g:02x}{b:02x}"
 
     @staticmethod
-    def millify(n: int | float) -> str:
+    def millify(n: float) -> str:
         """
         Human-readable large numbers.
 
         https://stackoverflow.com/questions/3154460/python-human-readable-large-numbers
+
+        Returns:
+            Number formatted with K/M/B/T/Q suffix.
+
         """
         n = float(n)
         names = ["", " K", " M", " B", " T", " Q"]
         idx = max(
             0,
             min(
-                len(names) - 1, int(math.floor(0 if n == 0 else math.log10(abs(n)) / 3))
+                len(names) - 1, math.floor(0 if n == 0 else math.log10(abs(n)) / 3)
             ),
         )
 
@@ -88,11 +92,12 @@ class App(tk.Frame):
     def parse_logs(self) -> None:
         """
         If there are new logs, process logs and add relevant messages to `ScrolledText`.
+
         Otherwise, schedule next iteration and exit early.
         """
         try:
             new_logs = self.parser.process()
-        except NoNewLogs:
+        except NoNewLogsError:
             self.after(self.check_interval, self.parse_logs)
             return
 
@@ -117,9 +122,9 @@ class App(tk.Frame):
     def _insert_msg(self, text: str, tag: str = "") -> None:
         self.log.insert(tk.END, text, tag)
 
-    def add_line(self, victim: str, dmg: int | float, source: str) -> None:
+    def add_line(self, victim: str, dmg: float, source: str) -> None:
         messages: list[tuple[str, ...]] = [
-            (f"{dt.datetime.now().strftime('%H:%M:%S')}", "time"),  # text, tag
+            (f"{dt.datetime.now(tz=dt.UTC).astimezone().strftime('%H:%M:%S')}", "time"),  # text, tag
             (" - ",),
             ("Damage: ",),
             (f"{self.millify(dmg):<10}", "dmg"),

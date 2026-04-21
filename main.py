@@ -5,7 +5,7 @@ from pathlib import Path
 
 from config import get_app_data_path, load_or_create_config
 from gui import App, path_not_found, unsupported
-from parser import LogParser
+from log_parser import LogParser
 
 
 def main() -> None:
