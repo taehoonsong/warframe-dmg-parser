@@ -9,3 +9,6 @@ wheels/
 # Virtual environments
 .venv
 *.spec
+
+# config file
+config.toml
